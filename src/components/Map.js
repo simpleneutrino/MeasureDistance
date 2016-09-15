@@ -7,6 +7,8 @@ import { default as _ } from 'lodash';
 import { GoogleMapLoader, GoogleMap, Marker } from 'react-google-maps';
 import { triggerEvent } from 'react-google-maps/lib/utils';
 
+import { closestMarker } from './../utils/closestMarker';
+
 /*
  * This is the modify version of:
  * https://developers.google.com/maps/documentation/javascript/examples/event-arguments
@@ -24,9 +26,30 @@ export default class GettingStarted extends Component {
         },
         key: 'Akedemmistechko',
         defaultAnimation: 2,
+        icon: 'http://maps.google.com/mapfiles/ms/micons/bus.png'
+      },
+      {
+        position: {
+          lat: 50.4578739,
+          lng: 30.3884297,
+        },
+        key: 'Svytoshyn',
+        defaultAnimation: 2,
+        icon: 'http://maps.google.com/mapfiles/ms/micons/bus.png',
+      },
+      {
+        position: {
+          lat: 50.4589459,
+          lng: 30.4191797,
+        },
+        key: 'Shukyvska',
+        defaultAnimation: 2,
+        icon: 'http://maps.google.com/mapfiles/ms/micons/bus.png',
       },
     ],
+    routePoints: [],
   }
+
 
   constructor(props, context) {
     super(props, context);
@@ -57,24 +80,38 @@ export default class GettingStarted extends Component {
    * Go and try click now.
    */
   handleMapClick(event) {
-    let { markers } = this.state;
-    markers = update(markers, {
-      $push: [
-        {
-          position: event.latLng,
-          defaultAnimation: 2,
-          key: Date.now(), // Add a key property for: http://fb.me/react-warning-keys
-        },
-      ],
-    });
-    this.setState({ markers });
-
-    if (markers.length === 3) {
-      this.props.toast(
-        'Right click on the marker to remove it',
-        'Also check the code!'
-      );
+    let { routePoints, markers } = this.state;
+    const position = closestMarker(event.latLng, markers);
+    let markerName = (routePoints.length === 1) ? 'B' : 'A';
+    if (routePoints.length < 2) {
+      routePoints = update(routePoints, {
+        $push: [
+          {
+            position: position,
+            icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
+            defaultAnimation: 2,
+            key: Date.now(), // Add a key property for: http://fb.me/react-warning-keys
+          },
+        ],
+      });
+      console.log(routePoints);
+    } else if (routePoints.length === 2) {
+      routePoints = update(routePoints, {
+        $set: []
+      });
+      console.log(routePoints);
+      routePoints = update(routePoints, {
+        $push: [
+          {
+            position: position,
+            icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
+            defaultAnimation: 2,
+            key: Date.now(), // Add a key property for: http://fb.me/react-warning-keys
+          },
+        ],
+      });
     }
+    this.setState({ routePoints });
   }
 
   handleMarkerRightclick(index) {
@@ -106,15 +143,23 @@ export default class GettingStarted extends Component {
         googleMapElement={
           <GoogleMap
             ref={(map) => (this._googleMapComponent = map) && console.log(map.getZoom())}
-            defaultZoom={10}
+            defaultZoom={13}
             defaultCenter={{ lat: 50.4668363, lng: 30.3594546 }}
             onClick={::this.handleMapClick}
           >
-            {this.state.markers.map((marker, index) => {
+            {this.state.markers.map((marker/*, index*/) => {
               return (
                 <Marker
                   {...marker}
-                  onRightclick={this.handleMarkerRightclick.bind(this, index)}
+                  // onRightclick={this.handleMarkerRightclick.bind(this, index)}
+                />
+              );
+            })}
+            {this.state.routePoints.map((marker/*, index*/) => {
+              return (
+                <Marker
+                  {...marker}
+                  // onRightclick={this.handleMarkerRightclick.bind(this, index)}
                 />
               );
             })}
