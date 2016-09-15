@@ -38,5 +38,9 @@ module.exports = {
         plugins: ['transform-runtime'],
       }
     ]
-  }
+  },
+
+  devServer: {
+    port: 8085,
+  },
 }
