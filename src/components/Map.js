@@ -10,6 +10,8 @@ import { triggerEvent } from 'react-google-maps/lib/utils';
 import { closestMarker } from './../system/closestMarker';
 import  coordinates from './../system/coordinates';
 
+import  Graph from './../system/dijkstras';
+
 export default class GettingStarted extends Component {
 
   state = {
@@ -19,6 +21,7 @@ export default class GettingStarted extends Component {
       return point;
     }),
     routePoints: [],
+    graph: new Graph(),
   }
 
 
