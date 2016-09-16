@@ -8,50 +8,22 @@ import { GoogleMapLoader, GoogleMap, Marker } from 'react-google-maps';
 import { triggerEvent } from 'react-google-maps/lib/utils';
 
 import { closestMarker } from './../utils/closestMarker';
+import  coordinates from './../utils/coordinates';
 
-/*
- * This is the modify version of:
- * https://developers.google.com/maps/documentation/javascript/examples/event-arguments
- *
- * Add <script src='https://maps.googleapis.com/maps/api/js'></script> to your HTML to provide google.maps reference
- */
 export default class GettingStarted extends Component {
 
   state = {
-    markers: [
-      {
-        position: {
-          lat: 50.4668363,
-          lng: 30.3594546,
-        },
-        key: 'Akedemmistechko',
-        defaultAnimation: 2,
-        icon: 'http://maps.google.com/mapfiles/ms/micons/bus.png'
-      },
-      {
-        position: {
-          lat: 50.4578739,
-          lng: 30.3884297,
-        },
-        key: 'Svytoshyn',
-        defaultAnimation: 2,
-        icon: 'http://maps.google.com/mapfiles/ms/micons/bus.png',
-      },
-      {
-        position: {
-          lat: 50.4589459,
-          lng: 30.4191797,
-        },
-        key: 'Shukyvska',
-        defaultAnimation: 2,
-        icon: 'http://maps.google.com/mapfiles/ms/micons/bus.png',
-      },
-    ],
+    markers: coordinates.map((point) => {
+      point.defaultAnimation = 2;
+      point.icon = 'http://maps.google.com/mapfiles/ms/micons/bus.png';
+      return point;
+    }),
     routePoints: [],
   }
 
 
   constructor(props, context) {
+    console.log(coordinates);
     super(props, context);
     this.handleWindowResize = _.throttle(::this.handleWindowResize, 500);
   }
@@ -75,10 +47,7 @@ export default class GettingStarted extends Component {
     triggerEvent(this._googleMapComponent, 'resize');
   }
 
-  /*
-   * This is called when you click on the map.
-   * Go and try click now.
-   */
+
   handleMapClick(event) {
     let { routePoints, markers } = this.state;
     const position = closestMarker(event.latLng, markers);
@@ -90,23 +59,21 @@ export default class GettingStarted extends Component {
             position: position,
             icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
             defaultAnimation: 2,
-            key: Date.now(), // Add a key property for: http://fb.me/react-warning-keys
+            key: Date.now(),
           },
         ],
       });
-      console.log(routePoints);
     } else if (routePoints.length === 2) {
       routePoints = update(routePoints, {
         $set: []
       });
-      console.log(routePoints);
       routePoints = update(routePoints, {
         $push: [
           {
             position: position,
             icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
             defaultAnimation: 2,
-            key: Date.now(), // Add a key property for: http://fb.me/react-warning-keys
+            key: Date.now(),
           },
         ],
       });
@@ -114,20 +81,20 @@ export default class GettingStarted extends Component {
     this.setState({ routePoints });
   }
 
-  handleMarkerRightclick(index) {
-    /*
-     * All you modify is data, and the view is driven by data.
-     * This is so called data-driven-development. (And yes, it's now in
-     * web front end and even with google maps API.)
-     */
-    let { markers } = this.state;
-    markers = update(markers, {
-      $splice: [
-        [index, 1],
-      ],
-    });
-    this.setState({ markers });
-  }
+  // handleMarkerRightclick(index) {
+  //   /*
+  //    * All you modify is data, and the view is driven by data.
+  //    * This is so called data-driven-development. (And yes, it's now in
+  //    * web front end and even with google maps API.)
+  //    */
+  //   let { markers } = this.state;
+  //   markers = update(markers, {
+  //     $splice: [
+  //       [index, 1],
+  //     ],
+  //   });
+  //   this.setState({ markers });
+  // }
 
   render() {
     return (
@@ -159,7 +126,6 @@ export default class GettingStarted extends Component {
               return (
                 <Marker
                   {...marker}
-                  // onRightclick={this.handleMarkerRightclick.bind(this, index)}
                 />
               );
             })}
