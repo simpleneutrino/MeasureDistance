@@ -7,8 +7,8 @@ import { default as _ } from 'lodash';
 import { GoogleMapLoader, GoogleMap, Marker } from 'react-google-maps';
 import { triggerEvent } from 'react-google-maps/lib/utils';
 
-import { closestMarker } from './../utils/closestMarker';
-import  coordinates from './../utils/coordinates';
+import { closestMarker } from './../system/closestMarker';
+import  coordinates from './../system/coordinates';
 
 export default class GettingStarted extends Component {
 
@@ -23,7 +23,6 @@ export default class GettingStarted extends Component {
 
 
   constructor(props, context) {
-    console.log(coordinates);
     super(props, context);
     this.handleWindowResize = _.throttle(::this.handleWindowResize, 500);
   }
@@ -111,7 +110,7 @@ export default class GettingStarted extends Component {
           <GoogleMap
             ref={(map) => (this._googleMapComponent = map) && console.log(map.getZoom())}
             defaultZoom={13}
-            defaultCenter={{ lat: 50.4668363, lng: 30.3594546 }}
+            defaultCenter={{ lat: 50.4470594, lng: 30.5231723, }}
             onClick={::this.handleMapClick}
           >
             {this.state.markers.map((marker/*, index*/) => {

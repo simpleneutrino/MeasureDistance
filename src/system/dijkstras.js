@@ -3,22 +3,22 @@
  * this code works with the implementation in google's closure library (https://code.google.com/p/closure-library/).
  * Use goog.require('goog.structs.PriorityQueue'); and new goog.structs.PriorityQueue()
  */
-class PriorityQueue {
-  _nodes = [];
+function PriorityQueue () {
+  this._nodes = [];
 
-  enqueue(priority, key) {
+  this.enqueue = function (priority, key) {
     this._nodes.push({key: key, priority: priority });
     this.sort();
   }
-  dequeue() {
+  this.dequeue = function () {
     return this._nodes.shift().key;
   }
-  sort() {
+  this.sort = function () {
     this._nodes.sort(function (a, b) {
       return a.priority - b.priority;
     });
   }
-  isEmpty() {
+  this.isEmpty = function () {
     return !this._nodes.length;
   }
 }
@@ -26,15 +26,15 @@ class PriorityQueue {
 /**
  * Pathfinding starts here
  */
-const INFINITY = 1/0;
+function Graph(){
+  const INFINITY = 1/0;
+  this.vertices = {};
 
-class Graph{
-  vertices = {};
-  addVertex(name, edges) {
+  this.addVertex = function(name, edges){
     this.vertices[name] = edges;
   }
 
-  shortestPath(start, finish) {
+  this.shortestPath = function (start, finish) {
     let nodes = new PriorityQueue(),
         distances = {},
         previous = {},
