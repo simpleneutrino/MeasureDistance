@@ -11,6 +11,7 @@ import { closestMarker } from './../system/closestMarker';
 import  coordinates from './../system/coordinates';
 
 import  Graph from './../system/dijkstras';
+import  { calculateVertexDist } from './../system/calculateVertexDist';
 
 export default class GettingStarted extends Component {
 
@@ -31,6 +32,12 @@ export default class GettingStarted extends Component {
   }
 
   componentDidMount() {
+    let { markers, graph } = this.state;
+    for (let i = 0; i < markers.length; i += 1) {
+      graph.addVertex(markers[i].key, calculateVertexDist(i, markers));
+      // console.log(calculateVertexDist(i, markers));
+    }
+    console.log(graph.shortestPath('Dnipro', 'Klovska').concat(['Dnipro']).reverse());
     if (!canUseDOM) {
       return;
     }
