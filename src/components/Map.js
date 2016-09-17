@@ -40,7 +40,7 @@ export default class Map extends Component {
       graph.addVertex(markers[i].key, calculateVertexDist(i, markers));
       // console.log(calculateVertexDist(i, markers));
     }
-    console.log(graph.shortestPath('Dnipro', 'Klovska').concat(['Dnipro']).reverse());
+    // console.log(graph.shortestPath('Dnipro', 'Klovska').concat(['Dnipro']).reverse());
     if (!canUseDOM) {
       return;
     }
@@ -62,10 +62,11 @@ export default class Map extends Component {
 
   handleMapClick(event) {
     let { markers, routePoints } = this.state;
-    const closestPoint = {value: closestMarker(event.latLng, markers)}
-    console.log(closestMarker(event.latLng, markers));
-    const first = (routePoints[0].hasOwnProperty('position')) ? false : true;
-    this.updateSelectValue(first, closestPoint);
+    if ( !(routePoints[0].hasOwnProperty('position') && routePoints[1].hasOwnProperty('position'))) {
+      const closestPoint = {value: closestMarker(event.latLng, markers)}
+      const first = (routePoints[0].hasOwnProperty('position')) ? false : true;
+      this.updateSelectValue(first, closestPoint);
+    }
     // let markerName = (routePoints.length === 1) ? 'B' : 'A';
     // if (routePoints.length < 2) {
     //   routePoints = update(routePoints, {
@@ -115,7 +116,7 @@ export default class Map extends Component {
 
   updateSelectValue(isFirst, val) {
     let indexOfMarker = (val.value) || 0 ;
-    let { routePoints, markers } = this.state;
+    let { routePoints, markers, graph } = this.state;
     const position = markers[indexOfMarker].position;
     const markerName = isFirst ? 'A' : 'B';
     const index = isFirst ? 0 : 1;
@@ -144,7 +145,7 @@ export default class Map extends Component {
       });
     }
     this.setState({ routePoints });
-
+    isFirst || console.log(graph.shortestPath(routePoints[0].key, routePoints[1].key).concat([routePoints[0].key]).reverse());
   }
 
   render() {
