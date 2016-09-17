@@ -63,7 +63,8 @@ export default class Map extends Component {
   handleMapClick(event) {
     let { markers, routePoints } = this.state;
     const closestPoint = {value: closestMarker(event.latLng, markers)}
-    const first = (routePoints[0].hasOwnProperty('position') && !routePoints[1].hasOwnProperty('position')) ? false : true;
+    console.log(closestMarker(event.latLng, markers));
+    const first = (routePoints[0].hasOwnProperty('position')) ? false : true;
     this.updateSelectValue(first, closestPoint);
     // let markerName = (routePoints.length === 1) ? 'B' : 'A';
     // if (routePoints.length < 2) {
@@ -113,21 +114,35 @@ export default class Map extends Component {
   // }
 
   updateSelectValue(isFirst, val) {
+    let indexOfMarker = (val.value) || 0 ;
     let { routePoints, markers } = this.state;
-    const position = markers[val.value].position;
+    const position = markers[indexOfMarker].position;
     const markerName = isFirst ? 'A' : 'B';
     const index = isFirst ? 0 : 1;
-    routePoints = update(routePoints, {
-      $splice: [[index, 1,
-        {
-          position: position,
-          icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
-          defaultAnimation: 2,
-          key: markers[val.value + 1].key,
-          selectIndex: val.value
-        },
-      ]],
-    });
+    if (val.value) {
+      routePoints = update(routePoints, {
+        $splice: [[index, 1,
+          {
+            position: position,
+            icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
+            defaultAnimation: 2,
+            key: markers[indexOfMarker].key,
+            selectIndex: indexOfMarker
+          },
+        ]],
+      });
+    } else {
+      routePoints = update(routePoints, {
+        $splice: [[index, 1,
+          {
+            icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
+            defaultAnimation: 2,
+            key: markers[indexOfMarker].key,
+            selectIndex: indexOfMarker
+          },
+        ]],
+      });
+    }
     this.setState({ routePoints });
 
   }
@@ -148,12 +163,14 @@ export default class Map extends Component {
           value={this.state.routePoints[0].selectIndex}
           options={options}
           onChange={this.updateSelectValue.bind(this, true)}
+          resetValue={0}
         />
         <Select
           name="select-2"
           value={this.state.routePoints[1].selectIndex}
           options={options}
           onChange={this.updateSelectValue.bind(this, false)}
+          resetValue={0}
         />
         <GoogleMapLoader
           containerElement={
