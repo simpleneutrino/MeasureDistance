@@ -7,13 +7,16 @@ import { default as _ } from 'lodash';
 import { GoogleMapLoader, GoogleMap, Marker } from 'react-google-maps';
 import { triggerEvent } from 'react-google-maps/lib/utils';
 
+import Select from 'react-select';
+import 'react-select/dist/react-select.css';
+
 import { closestMarker } from './../system/closestMarker';
 import  coordinates from './../system/coordinates';
 
 import  Graph from './../system/dijkstras';
 import  { calculateVertexDist } from './../system/calculateVertexDist';
 
-export default class GettingStarted extends Component {
+export default class Map extends Component {
 
   state = {
     markers: coordinates.map((point) => {
@@ -21,7 +24,7 @@ export default class GettingStarted extends Component {
       point.icon = 'http://maps.google.com/mapfiles/ms/micons/bus.png';
       return point;
     }),
-    routePoints: [],
+    routePoints: [{key: '0', selectIndex: 0}, {key: '1', selectIndex: 0}],
     graph: new Graph(),
   }
 
@@ -32,7 +35,7 @@ export default class GettingStarted extends Component {
   }
 
   componentDidMount() {
-    let { markers, graph } = this.state;
+    const { markers, graph } = this.state;
     for (let i = 0; i < markers.length; i += 1) {
       graph.addVertex(markers[i].key, calculateVertexDist(i, markers));
       // console.log(calculateVertexDist(i, markers));
@@ -58,36 +61,40 @@ export default class GettingStarted extends Component {
 
 
   handleMapClick(event) {
-    let { routePoints, markers } = this.state;
-    const position = closestMarker(event.latLng, markers);
-    let markerName = (routePoints.length === 1) ? 'B' : 'A';
-    if (routePoints.length < 2) {
-      routePoints = update(routePoints, {
-        $push: [
-          {
-            position: position,
-            icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
-            defaultAnimation: 2,
-            key: Date.now(),
-          },
-        ],
-      });
-    } else if (routePoints.length === 2) {
-      routePoints = update(routePoints, {
-        $set: []
-      });
-      routePoints = update(routePoints, {
-        $push: [
-          {
-            position: position,
-            icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
-            defaultAnimation: 2,
-            key: Date.now(),
-          },
-        ],
-      });
-    }
-    this.setState({ routePoints });
+    let { markers, routePoints } = this.state;
+    const closestPoint = {value: closestMarker(event.latLng, markers)}
+    const first = (routePoints[0].hasOwnProperty('position') && !routePoints[1].hasOwnProperty('position')) ? false : true;
+    this.updateSelectValue(first, closestPoint);
+    // let markerName = (routePoints.length === 1) ? 'B' : 'A';
+    // if (routePoints.length < 2) {
+    //   routePoints = update(routePoints, {
+    //     $push: [
+    //       {
+    //         position: position,
+    //         icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
+    //         defaultAnimation: 2,
+    //         key: markers[val.value + 1].key,
+    //         selectIndex: val.value
+    //       },
+    //     ],
+    //   });
+    // } else if (routePoints.length === 2) {
+    //   routePoints = update(routePoints, {
+    //     $set: []
+    //   });
+    //   routePoints = update(routePoints, {
+    //     $push: [
+    //       {
+    //         position: position,
+    //         icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
+    //         defaultAnimation: 2,
+    //         key: markers[val.value + 1].key,
+    //         selectIndex: val.value
+    //       },
+    //     ],
+    //   });
+    // }
+    // this.setState({ routePoints });
   }
 
   // handleMarkerRightclick(index) {
@@ -105,42 +112,84 @@ export default class GettingStarted extends Component {
   //   this.setState({ markers });
   // }
 
+  updateSelectValue(isFirst, val) {
+    let { routePoints, markers } = this.state;
+    const position = markers[val.value].position;
+    const markerName = isFirst ? 'A' : 'B';
+    const index = isFirst ? 0 : 1;
+    routePoints = update(routePoints, {
+      $splice: [[index, 1,
+        {
+          position: position,
+          icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
+          defaultAnimation: 2,
+          key: markers[val.value + 1].key,
+          selectIndex: val.value
+        },
+      ]],
+    });
+    this.setState({ routePoints });
+
+  }
+
   render() {
+    let options = [];
+    const { markers } = this.state;
+    for (let i = 0; i < markers.length; i += 1) {
+      const selectOption = { value: i, label: markers[i].key };
+      options.push(selectOption);
+    }
+
     return (
-      <GoogleMapLoader
-        containerElement={
-          <div
-            {...this.props}
-            style={{
-              height: '100%',
-            }}
-          />
-        }
-        googleMapElement={
-          <GoogleMap
-            ref={(map) => (this._googleMapComponent = map) && console.log(map.getZoom())}
-            defaultZoom={13}
-            defaultCenter={{ lat: 50.4470594, lng: 30.5231723, }}
-            onClick={::this.handleMapClick}
-          >
-            {this.state.markers.map((marker/*, index*/) => {
-              return (
-                <Marker
-                  {...marker}
-                  // onRightclick={this.handleMarkerRightclick.bind(this, index)}
-                />
-              );
-            })}
-            {this.state.routePoints.map((marker/*, index*/) => {
-              return (
-                <Marker
-                  {...marker}
-                />
-              );
-            })}
-          </GoogleMap>
-        }
-      />
+
+      <div className="map-wrapper">
+        <Select
+          name="select-1"
+          value={this.state.routePoints[0].selectIndex}
+          options={options}
+          onChange={this.updateSelectValue.bind(this, true)}
+        />
+        <Select
+          name="select-2"
+          value={this.state.routePoints[1].selectIndex}
+          options={options}
+          onChange={this.updateSelectValue.bind(this, false)}
+        />
+        <GoogleMapLoader
+          containerElement={
+            <div
+              {...this.props}
+              style={{
+                height: '100%',
+              }}
+            />
+          }
+          googleMapElement={
+            <GoogleMap
+              ref={(map) => (this._googleMapComponent = map) && console.log(map.getZoom())}
+              defaultZoom={13}
+              defaultCenter={{ lat: 50.4470594, lng: 30.5231723, }}
+              onClick={::this.handleMapClick}
+            >
+              {this.state.markers.map((marker/*, index*/) => {
+                return (
+                  <Marker
+                    {...marker}
+                    // onRightclick={this.handleMarkerRightclick.bind(this, index)}
+                  />
+                );
+              })}
+              {this.state.routePoints.map((marker/*, index*/) => {
+                return (
+                  <Marker
+                    {...marker}
+                  />
+                );
+              })}
+            </GoogleMap>
+          }
+        />
+      </div>
     );
   }
 }

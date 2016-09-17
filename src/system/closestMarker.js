@@ -14,5 +14,5 @@ export function closestMarker( eventLatLng, markers ) {
     }
   }
 
-  return(markers[closest].position);
+  return(closest);
 }
