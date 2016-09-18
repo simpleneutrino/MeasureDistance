@@ -22,9 +22,10 @@ export default class Map extends Component {
     markers: coordinates.map((point) => {
       point.defaultAnimation = 2;
       point.icon = 'http://maps.google.com/mapfiles/ms/micons/bus.png';
+      point.zIndex = 1;
       return point;
     }),
-    routePoints: [{key: '0', selectIndex: 0}, {key: '1', selectIndex: 0}],
+    routePoints: [{key: '0', selectIndex: 0, zIndex: 3}, {key: '1', selectIndex: 0, zIndex: 3}],
     graph: new Graph(),
     route: [],
   }
@@ -113,6 +114,7 @@ export default class Map extends Component {
               icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
               position: flightPlanCoordinates[i],
               defaultAnimation: 2,
+              zIndex: 2,
               key: Date.now() + i,
             },
           ],
@@ -121,23 +123,6 @@ export default class Map extends Component {
 
       this.setState({ route });
     })();
-    console.log(route);
-
-    // window.renderFlights = function() {
-    //   let flightPlanIndexes = graph.shortestPath(`${routePoints[0].selectIndex}`,
-    //     `${routePoints[1].selectIndex}`).concat([`${routePoints[0].selectIndex}`]).reverse();
-    //   let flightPlanCoordinates = flightPlanIndexes.map((i) => {
-    //     return markers[i].position;
-    //   });
-    //   let flightPath = new window.google.maps.Polyline({
-    //     path: flightPlanCoordinates,
-    //     geodesic: true,
-    //     strokeColor: '#FF0000',
-    //     strokeOpacity: 1.0,
-    //     strokeWeight: 2
-    //   });
-    //   flightPath.setMap(window.map.props.map);
-    // }
   }
 
   render() {

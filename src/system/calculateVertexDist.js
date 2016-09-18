@@ -10,6 +10,5 @@ export function calculateVertexDist(index, points) {
     // const directName = points[directions[i] - 1 ].key;
     vertexDist[`${directions[i] - 1 }`] = directDist;
   }
-  console.dir(vertexDist);
   return vertexDist;
 }
