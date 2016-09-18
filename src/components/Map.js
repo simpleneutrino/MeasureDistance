@@ -108,8 +108,7 @@ export default class Map extends Component {
       // create route array
       (() => {
         if (val && routePoints[0].selectIndex !== undefined &&
-          routePoints[1].selectIndex !== undefined &&
-          routePoints[0].selectIndex && routePoints[1].selectIndex) {
+          routePoints[1].selectIndex !== undefined ) {
 
           //create array of path index
           let flightPlanIndexes = graph.shortestPath(`${routePoints[0].selectIndex}`,
