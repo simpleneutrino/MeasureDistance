@@ -71,12 +71,15 @@ export default class Map extends Component {
   }
 
   updateSelectValue(isFirst, val) {
+
       let indexOfMarker = (val) ? val.value : '';
       let { routePoints, markers, graph, route } = this.state;
 
       const markerName = isFirst ? 'A' : 'B';
       const index = isFirst ? 0 : 1;
       route = {path: []};
+
+      //add route final points markers
       if (val !== null) {
         const position = markers[indexOfMarker].position;
         routePoints = update(routePoints, {
@@ -102,7 +105,7 @@ export default class Map extends Component {
         });
       }
       this.setState({ routePoints });
-
+      // create route array
       (() => {
         if (val && routePoints[0].selectIndex && routePoints[1].selectIndex) {
           //create array of path index
@@ -112,6 +115,7 @@ export default class Map extends Component {
           let flightPlanCoordinates = flightPlanIndexes.map((i) => {
             return markers[i].position;
           });
+
           route =
             {
               path: flightPlanCoordinates,
@@ -125,6 +129,7 @@ export default class Map extends Component {
         } else {
           route = {path: []};
         }
+
         this.setState({ route });
       })();
 
