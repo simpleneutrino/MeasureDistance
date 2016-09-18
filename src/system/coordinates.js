@@ -28,8 +28,8 @@ const coordinates = [
   },
   {
     position: {
-      lat: 50.4509564,
-      lng: 30.462955,
+      lat: 50.444851,
+      lng: 30.5138843,
     },
     key: 'Teatralna',
     id: 4,
