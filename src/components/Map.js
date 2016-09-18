@@ -4,7 +4,7 @@ import { default as update } from 'react-addons-update';
 import { default as canUseDOM } from 'can-use-dom';
 import { default as _ } from 'lodash';
 
-import { GoogleMapLoader, GoogleMap, Marker } from 'react-google-maps';
+import { GoogleMapLoader, GoogleMap, Marker, Polyline } from 'react-google-maps';
 import { triggerEvent } from 'react-google-maps/lib/utils';
 
 import Select from 'react-select';
@@ -27,7 +27,7 @@ export default class Map extends Component {
     }),
     routePoints: [{key: '0', selectIndex: 0, zIndex: 3}, {key: '1', selectIndex: 0, zIndex: 3}],
     graph: new Graph(),
-    route: [],
+    route: {},
   }
 
 
@@ -107,19 +107,24 @@ export default class Map extends Component {
       let flightPlanCoordinates = flightPlanIndexes.map((i) => {
         return markers[i].position;
       });
-      for (let i = 0; i < flightPlanCoordinates.length; i += 1) {
-        route = update(route, {
-          $push: [
+      // for (let i = 0; i < flightPlanCoordinates.length; i += 1) {
+        route =
             {
-              icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-              position: flightPlanCoordinates[i],
-              defaultAnimation: 2,
-              zIndex: 2,
-              key: Date.now() + i,
-            },
-          ],
-        });
-      }
+              // icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+              path: flightPlanCoordinates,
+              // defaultAnimation: 2,
+              // zIndex: 2,
+              // key: Date.now(),
+              options: {
+                geodesic: true,
+                strokeColor: '#FF0000',
+                strokeOpacity: 1.0,
+                strokeWeight: 2
+              }
+
+            };
+
+      // }
 
       this.setState({ route });
     })();
@@ -127,11 +132,13 @@ export default class Map extends Component {
 
   render() {
     let options = [];
-    const { markers } = this.state;
+    const { markers, route } = this.state;
     for (let i = 0; i < markers.length; i += 1) {
       const selectOption = { value: i, label: markers[i].key };
       options.push(selectOption);
     }
+
+    console.log(route);
 
     return (
 
@@ -166,6 +173,13 @@ export default class Map extends Component {
               defaultCenter={{ lat: 50.4470594, lng: 30.5231723, }}
               onClick={::this.handleMapClick}
             >
+
+              <Polyline
+                // polyline={route}
+                path={route.path}
+                // options={route.options}
+                visible={true}
+              />
               {this.state.markers.map((marker/*, index*/) => {
                 return (
                   <Marker
@@ -174,13 +188,9 @@ export default class Map extends Component {
                   />
                 );
               })}
-              {this.state.route.map((marker/*, index*/) => {
-                return (
-                  <Marker
-                    {...marker}
-                  />
-                );
-              })}
+
+
+
               {this.state.routePoints.map((marker/*, index*/) => {
                 return (
                   <Marker
