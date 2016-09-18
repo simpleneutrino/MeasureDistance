@@ -26,6 +26,7 @@ export default class Map extends Component {
     }),
     routePoints: [{key: '0', selectIndex: 0}, {key: '1', selectIndex: 0}],
     graph: new Graph(),
+    route: [],
   }
 
 
@@ -37,10 +38,8 @@ export default class Map extends Component {
   componentDidMount() {
     const { markers, graph } = this.state;
     for (let i = 0; i < markers.length; i += 1) {
-      graph.addVertex(markers[i].key, calculateVertexDist(i, markers));
-      // console.log(calculateVertexDist(i, markers));
+      graph.addVertex(i, calculateVertexDist(i, markers));
     }
-    // console.log(graph.shortestPath('Dnipro', 'Klovska').concat(['Dnipro']).reverse());
     if (!canUseDOM) {
       return;
     }
@@ -67,59 +66,15 @@ export default class Map extends Component {
       const first = (routePoints[0].hasOwnProperty('position')) ? false : true;
       this.updateSelectValue(first, closestPoint);
     }
-    // let markerName = (routePoints.length === 1) ? 'B' : 'A';
-    // if (routePoints.length < 2) {
-    //   routePoints = update(routePoints, {
-    //     $push: [
-    //       {
-    //         position: position,
-    //         icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
-    //         defaultAnimation: 2,
-    //         key: markers[val.value + 1].key,
-    //         selectIndex: val.value
-    //       },
-    //     ],
-    //   });
-    // } else if (routePoints.length === 2) {
-    //   routePoints = update(routePoints, {
-    //     $set: []
-    //   });
-    //   routePoints = update(routePoints, {
-    //     $push: [
-    //       {
-    //         position: position,
-    //         icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
-    //         defaultAnimation: 2,
-    //         key: markers[val.value + 1].key,
-    //         selectIndex: val.value
-    //       },
-    //     ],
-    //   });
-    // }
-    // this.setState({ routePoints });
   }
-
-  // handleMarkerRightclick(index) {
-  //   /*
-  //    * All you modify is data, and the view is driven by data.
-  //    * This is so called data-driven-development. (And yes, it's now in
-  //    * web front end and even with google maps API.)
-  //    */
-  //   let { markers } = this.state;
-  //   markers = update(markers, {
-  //     $splice: [
-  //       [index, 1],
-  //     ],
-  //   });
-  //   this.setState({ markers });
-  // }
 
   updateSelectValue(isFirst, val) {
     let indexOfMarker = (val.value) || 0 ;
-    let { routePoints, markers, graph } = this.state;
+    let { routePoints, markers, graph, route } = this.state;
     const position = markers[indexOfMarker].position;
     const markerName = isFirst ? 'A' : 'B';
     const index = isFirst ? 0 : 1;
+    route = [];
     if (val.value) {
       routePoints = update(routePoints, {
         $splice: [[index, 1,
@@ -127,7 +82,7 @@ export default class Map extends Component {
             position: position,
             icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
             defaultAnimation: 2,
-            key: markers[indexOfMarker].key,
+            key: markers[indexOfMarker].key + Date.now(),
             selectIndex: indexOfMarker
           },
         ]],
@@ -138,14 +93,51 @@ export default class Map extends Component {
           {
             icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
             defaultAnimation: 2,
-            key: markers[indexOfMarker].key,
+            key: markers[indexOfMarker].key + Date.now(),
             selectIndex: indexOfMarker
           },
         ]],
       });
     }
     this.setState({ routePoints });
-    isFirst || console.log(graph.shortestPath(routePoints[0].key, routePoints[1].key).concat([routePoints[0].key]).reverse());
+    isFirst || (() => {
+      let flightPlanIndexes = graph.shortestPath(`${routePoints[0].selectIndex}`,
+           `${routePoints[1].selectIndex}`).concat([`${routePoints[0].selectIndex}`]).reverse();
+      let flightPlanCoordinates = flightPlanIndexes.map((i) => {
+        return markers[i].position;
+      });
+      for (let i = 0; i < flightPlanCoordinates.length; i += 1) {
+        route = update(route, {
+          $push: [
+            {
+              icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+              position: flightPlanCoordinates[i],
+              defaultAnimation: 2,
+              key: Date.now() + i,
+            },
+          ],
+        });
+      }
+
+      this.setState({ route });
+    })();
+    console.log(route);
+
+    // window.renderFlights = function() {
+    //   let flightPlanIndexes = graph.shortestPath(`${routePoints[0].selectIndex}`,
+    //     `${routePoints[1].selectIndex}`).concat([`${routePoints[0].selectIndex}`]).reverse();
+    //   let flightPlanCoordinates = flightPlanIndexes.map((i) => {
+    //     return markers[i].position;
+    //   });
+    //   let flightPath = new window.google.maps.Polyline({
+    //     path: flightPlanCoordinates,
+    //     geodesic: true,
+    //     strokeColor: '#FF0000',
+    //     strokeOpacity: 1.0,
+    //     strokeWeight: 2
+    //   });
+    //   flightPath.setMap(window.map.props.map);
+    // }
   }
 
   render() {
@@ -184,7 +176,7 @@ export default class Map extends Component {
           }
           googleMapElement={
             <GoogleMap
-              ref={(map) => (this._googleMapComponent = map) && console.log(map.getZoom())}
+              ref={(map) => {this._googleMapComponent = map}}
               defaultZoom={13}
               defaultCenter={{ lat: 50.4470594, lng: 30.5231723, }}
               onClick={::this.handleMapClick}
@@ -194,6 +186,13 @@ export default class Map extends Component {
                   <Marker
                     {...marker}
                     // onRightclick={this.handleMarkerRightclick.bind(this, index)}
+                  />
+                );
+              })}
+              {this.state.route.map((marker/*, index*/) => {
+                return (
+                  <Marker
+                    {...marker}
                   />
                 );
               })}

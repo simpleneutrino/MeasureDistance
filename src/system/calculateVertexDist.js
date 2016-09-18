@@ -7,8 +7,9 @@ export function calculateVertexDist(index, points) {
     const p1 = points[index].position;
     const p2 = points[directions[i] - 1].position;
     const directDist = calculateDistance(p1, p2);
-    const directName = points[directions[i] - 1 ].key;
-    vertexDist[directName] = directDist;
+    // const directName = points[directions[i] - 1 ].key;
+    vertexDist[`${directions[i] - 1 }`] = directDist;
   }
+  console.dir(vertexDist);
   return vertexDist;
 }
