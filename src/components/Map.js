@@ -25,7 +25,7 @@ export default class Map extends Component {
       point.zIndex = 1;
       return point;
     }),
-    routePoints: [{key: '0', selectIndex: 0, zIndex: 3}, {key: '1', selectIndex: 0, zIndex: 3}],
+    routePoints: [{key: '0', selectIndex: '', zIndex: 3}, {key: '1', selectIndex: '', zIndex: 3}],
     graph: new Graph(),
     route: {},
   }
@@ -38,6 +38,7 @@ export default class Map extends Component {
 
   componentDidMount() {
     const { markers, graph } = this.state;
+    //build graph
     for (let i = 0; i < markers.length; i += 1) {
       graph.addVertex(i, calculateVertexDist(i, markers));
     }
@@ -70,64 +71,64 @@ export default class Map extends Component {
   }
 
   updateSelectValue(isFirst, val) {
-    let indexOfMarker = (val.value) || 0 ;
-    let { routePoints, markers, graph, route } = this.state;
-    const position = markers[indexOfMarker].position;
-    const markerName = isFirst ? 'A' : 'B';
-    const index = isFirst ? 0 : 1;
-    route = [];
-    if (val.value) {
-      routePoints = update(routePoints, {
-        $splice: [[index, 1,
-          {
-            position: position,
-            icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
-            defaultAnimation: 2,
-            key: markers[indexOfMarker].key + Date.now(),
-            selectIndex: indexOfMarker
-          },
-        ]],
-      });
-    } else {
-      routePoints = update(routePoints, {
-        $splice: [[index, 1,
-          {
-            icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
-            defaultAnimation: 2,
-            key: markers[indexOfMarker].key + Date.now(),
-            selectIndex: indexOfMarker
-          },
-        ]],
-      });
-    }
-    this.setState({ routePoints });
-    isFirst || (() => {
-      let flightPlanIndexes = graph.shortestPath(`${routePoints[0].selectIndex}`,
-           `${routePoints[1].selectIndex}`).concat([`${routePoints[0].selectIndex}`]).reverse();
-      let flightPlanCoordinates = flightPlanIndexes.map((i) => {
-        return markers[i].position;
-      });
-      // for (let i = 0; i < flightPlanCoordinates.length; i += 1) {
-        route =
+      let indexOfMarker = (val) ? val.value : '';
+      let { routePoints, markers, graph, route } = this.state;
+
+      const markerName = isFirst ? 'A' : 'B';
+      const index = isFirst ? 0 : 1;
+      route = {path: []};
+      if (val !== null) {
+        const position = markers[indexOfMarker].position;
+        routePoints = update(routePoints, {
+          $splice: [[index, 1,
             {
-              // icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+              position: position,
+              icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
+              defaultAnimation: 2,
+              key: markers[indexOfMarker].key + Date.now(),
+              selectIndex: indexOfMarker
+            },
+          ]],
+        });
+      } else {
+        routePoints = update(routePoints, {
+          $splice: [[index, 1,
+            {
+              icon: `https://maps.google.com/mapfiles/marker${markerName}.png`,
+              defaultAnimation: 2,
+              key: Date.now(),
+            },
+          ]],
+        });
+      }
+      this.setState({ routePoints });
+
+      (() => {
+        if (val && routePoints[0].selectIndex && routePoints[1].selectIndex) {
+          //create array of path index
+          let flightPlanIndexes = graph.shortestPath(`${routePoints[0].selectIndex}`,
+               `${routePoints[1].selectIndex}`).concat([`${routePoints[0].selectIndex}`]).reverse();
+          //create array of path coordinates
+          let flightPlanCoordinates = flightPlanIndexes.map((i) => {
+            return markers[i].position;
+          });
+          route =
+            {
               path: flightPlanCoordinates,
-              // defaultAnimation: 2,
-              // zIndex: 2,
-              // key: Date.now(),
               options: {
                 geodesic: true,
                 strokeColor: '#FF0000',
                 strokeOpacity: 1.0,
-                strokeWeight: 2
+                strokeWeight: 2,
               }
-
             };
+        } else {
+          route = {path: []};
+        }
+        this.setState({ route });
+      })();
 
-      // }
 
-      this.setState({ route });
-    })();
   }
 
   render() {
@@ -138,8 +139,6 @@ export default class Map extends Component {
       options.push(selectOption);
     }
 
-    console.log(route);
-
     return (
 
       <div className="map-wrapper">
@@ -148,14 +147,12 @@ export default class Map extends Component {
           value={this.state.routePoints[0].selectIndex}
           options={options}
           onChange={this.updateSelectValue.bind(this, true)}
-          resetValue={0}
         />
         <Select
           name="select-2"
           value={this.state.routePoints[1].selectIndex}
           options={options}
           onChange={this.updateSelectValue.bind(this, false)}
-          resetValue={0}
         />
         <GoogleMapLoader
           containerElement={
@@ -175,29 +172,27 @@ export default class Map extends Component {
             >
 
               <Polyline
-                // polyline={route}
                 path={route.path}
-                // options={route.options}
+                options={route.options}
                 visible={true}
               />
-              {this.state.markers.map((marker/*, index*/) => {
-                return (
-                  <Marker
-                    {...marker}
-                    // onRightclick={this.handleMarkerRightclick.bind(this, index)}
-                  />
-                );
-              })}
 
-
-
-              {this.state.routePoints.map((marker/*, index*/) => {
+              {this.state.markers.map((marker) => {
                 return (
                   <Marker
                     {...marker}
                   />
                 );
               })}
+
+              {this.state.routePoints.map((marker) => {
+                return (
+                  <Marker
+                    {...marker}
+                  />
+                );
+              })}
+
             </GoogleMap>
           }
         />
