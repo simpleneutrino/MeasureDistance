@@ -25,7 +25,7 @@ export default class Map extends Component {
       point.zIndex = 1;
       return point;
     }),
-    routePoints: [{key: '0', selectIndex: '', zIndex: 3}, {key: '1', selectIndex: '', zIndex: 3}],
+    routePoints: [{key: '0', selectIndex: null, zIndex: 3}, {key: '1', selectIndex: null, zIndex: 3}],
     graph: new Graph(),
     route: {},
   }
@@ -107,10 +107,12 @@ export default class Map extends Component {
       this.setState({ routePoints });
       // create route array
       (() => {
-        if (val && routePoints[0].selectIndex && routePoints[1].selectIndex) {
+        if (val && routePoints[0].selectIndex !== undefined && routePoints[1].selectIndex !== undefined) {
+
           //create array of path index
           let flightPlanIndexes = graph.shortestPath(`${routePoints[0].selectIndex}`,
                `${routePoints[1].selectIndex}`).concat([`${routePoints[0].selectIndex}`]).reverse();
+
           //create array of path coordinates
           let flightPlanCoordinates = flightPlanIndexes.map((i) => {
             return markers[i].position;
